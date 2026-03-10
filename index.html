@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>claude-monitor — Auto-accept Claude Code permissions</title>
+  <meta name="description" content="A terminal dashboard that monitors and auto-accepts Claude Code permission prompts across iTerm2 panes. Free and open source.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --bg-raised: #161b22;
+      --bg-overlay: #1c2128;
+      --text: #c9d1d9;
+      --text-dim: #8b949e;
+      --text-bright: #e6edf3;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --magenta: #bc8cff;
+      --blue: #58a6ff;
+      --red: #f85149;
+      --orange: #d18616;
+      --border: #30363d;
+      --border-bright: #484f58;
+      --font: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Source Code Pro', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+      --max-width: 1080px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- NAV ---- */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+    .nav-wordmark {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-bright);
+      letter-spacing: -0.3px;
+    }
+    .nav-wordmark span { color: var(--text-dim); }
+    .github-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .github-link:hover {
+      color: var(--text-bright);
+      border-color: var(--border-bright);
+      background: var(--bg-raised);
+    }
+    .github-link svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* ---- HERO ---- */
+    .hero {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 80px 24px 60px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 600;
+      color: var(--text-bright);
+      line-height: 1.3;
+      letter-spacing: -0.5px;
+      max-width: 720px;
+      margin: 0 auto 20px;
+    }
+    .hero h1 .accent { color: var(--green); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin: 0 auto 24px;
+      line-height: 1.7;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      background: rgba(63, 185, 80, 0.08);
+      padding: 4px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---- HERO SCREENSHOT ---- */
+    .hero-screenshot {
+      max-width: var(--max-width);
+      margin: 48px auto 0;
+      padding: 0 24px;
+    }
+    .screenshot-frame {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--bg-raised);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.3),
+        0 16px 48px rgba(0,0,0,0.4),
+        0 0 80px rgba(63, 185, 80, 0.06);
+    }
+    .screenshot-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-overlay);
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #f85149; }
+    .dot-yellow { background: #d29922; }
+    .dot-green { background: #3fb950; }
+    .screenshot-title {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-right: 52px;
+    }
+    .screenshot-frame img {
+      width: 100%;
+      display: block;
+    }
+
+    /* ---- FEATURES ---- */
+    .features {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .label-green { color: var(--green); }
+    .label-magenta { color: var(--magenta); }
+    .label-yellow { color: var(--yellow); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .feature {
+      background: var(--bg);
+      padding: 28px 24px;
+    }
+    .feature h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+    }
+    .feature h3 .tag {
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .feature p {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .tag-green { color: var(--green); }
+    .tag-yellow { color: var(--yellow); }
+    .tag-magenta { color: var(--magenta); }
+    .tag-blue { color: var(--blue); }
+    .tag-orange { color: var(--orange); }
+
+    /* ---- SCREENSHOTS ---- */
+    .screenshots {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .screenshot-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-raised);
+      transition: border-color 0.2s ease;
+    }
+    .screenshot-card:hover {
+      border-color: var(--border-bright);
+    }
+    .screenshot-card .screenshot-titlebar {
+      padding: 10px 14px;
+    }
+    .screenshot-card .dot { width: 10px; height: 10px; }
+    .screenshot-card .screenshot-title { margin-right: 46px; font-size: 11px; }
+    .screenshot-card img {
+      width: 100%;
+      display: block;
+    }
+    .screenshot-caption {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .screenshot-caption h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+    }
+    .screenshot-caption p {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ---- INSTALL ---- */
+    .install {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .install-block {
+      max-width: 560px;
+      margin: 0 auto;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .install-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-overlay);
+    }
+    .install-header span {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .copy-btn:hover {
+      color: var(--text-bright);
+      border-color: var(--border-bright);
+    }
+    .copy-btn.copied {
+      color: var(--green);
+      border-color: rgba(63, 185, 80, 0.3);
+    }
+    .install-code {
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .install-code .prompt { color: var(--green); user-select: none; }
+    .install-code .cmd { color: var(--text-bright); }
+    .install-code .str { color: var(--blue); }
+
+    /* ---- REQUIREMENTS ---- */
+    .requirements {
+      max-width: 560px;
+      margin: 24px auto 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .req {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .req-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--border-bright);
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .footer-inner a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .footer-inner a:hover { color: var(--text-bright); }
+    .footer-sep { margin: 0 10px; opacity: 0.4; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 680px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .screenshots-grid { grid-template-columns: 1fr; }
+      .hero { padding: 60px 20px 40px; }
+      .features, .screenshots, .install { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-wordmark">claude<span>-</span>monitor</div>
+      <a href="https://github.com/cjthompson/claude-monitor" class="github-link" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1><span class="accent">Auto-accept</span> Claude Code permissions. Monitor everything. One dashboard.</h1>
+    <p class="hero-sub">A terminal UI that mirrors your iTerm2 pane layout, auto-accepts permission prompts, and keeps every Claude Code session running unattended.</p>
+    <span class="pill">Free &amp; open source</span>
+  </section>
+
+  <!-- HERO SCREENSHOT -->
+  <div class="hero-screenshot">
+    <div class="screenshot-frame">
+      <div class="screenshot-titlebar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <div class="screenshot-title">Claude Monitor (Auto)</div>
+      </div>
+      <img src="images/07-multi-pane-layout.png" alt="claude-monitor multi-pane layout showing multiple Claude Code sessions and the aggregate dashboard" loading="eager">
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-label label-green">Features</div>
+    <div class="features-grid">
+      <div class="feature">
+        <h3>Auto-accept permissions <span class="tag tag-green">ALLOWED</span></h3>
+        <p>Permission prompts are automatically accepted so sessions run hands-free. No more switching between panes to approve every Bash, Edit, or Write.</p>
+      </div>
+      <div class="feature">
+        <h3>Per-pane mode control <span class="tag tag-yellow">MANUAL</span></h3>
+        <p>Toggle individual panes between auto and manual mode. Keep risky sessions supervised while letting routine work run unattended.</p>
+      </div>
+      <div class="feature">
+        <h3>iTerm2 layout mirroring</h3>
+        <p>Reads your iTerm2 pane tree and renders an exact visual replica with proportional sizing. Vertical and horizontal splits are mirrored precisely.</p>
+      </div>
+      <div class="feature">
+        <h3>Agent tracking <span class="tag tag-magenta">AGENT+</span></h3>
+        <p>Tracks subagent lifecycle per session with active counts, type breakdowns, and completion totals. Know exactly what's running where.</p>
+      </div>
+      <div class="feature">
+        <h3>API usage bar <span class="tag tag-orange">55%</span></h3>
+        <p>Live Anthropic API quota utilization with 5-hour and 7-day progress bars, color coding, and reset countdowns. Uses your OAuth token from macOS Keychain.</p>
+      </div>
+      <div class="feature">
+        <h3>HTTP API <span class="tag tag-blue">:17233</span></h3>
+        <p>Localhost API for external tools. Get screenshots (PNG/SVG), structured JSON state, and health checks. Build Telegram bots or custom dashboards on top.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section class="screenshots">
+    <div class="section-label label-magenta">In Action</div>
+    <div class="screenshots-grid">
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">Dashboard</div>
+        </div>
+        <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
+        <div class="screenshot-caption">
+          <h4>Dashboard &amp; session</h4>
+          <p>Aggregate stats, activity sparkline, and combined event feed from all sessions.</p>
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">Settings</div>
+        </div>
+        <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
+        <div class="screenshot-caption">
+          <h4>Settings</h4>
+          <p>Configure theme, mode defaults, iTerm2 scope, timestamps, and 20 color themes.</p>
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">Permissions</div>
+        </div>
+        <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
+        <div class="screenshot-caption">
+          <h4>Permission choices log</h4>
+          <p>Full history of every permission request with tool details, commands, and descriptions.</p>
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">AskUserQuestion</div>
+        </div>
+        <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
+        <div class="screenshot-caption">
+          <h4>AskUserQuestion timeout</h4>
+          <p>Countdown timer for auto-accepting AskUserQuestion prompts. Configurable per-pane.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="install">
+    <div class="section-label label-yellow">Install</div>
+    <div class="install-block">
+      <div class="install-header">
+        <span>Terminal</span>
+        <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
+      </div>
+      <div class="install-code">
+<span class="prompt">$ </span><span class="cmd">git clone</span> <span class="str">https://github.com/cjthompson/claude-monitor.git</span>
+<span class="prompt">$ </span><span class="cmd">cd</span> claude-monitor
+<span class="prompt">$ </span><span class="cmd">python3</span> install.py
+      </div>
+    </div>
+    <div class="requirements">
+      <span class="req"><span class="req-dot"></span>macOS</span>
+      <span class="req"><span class="req-dot"></span>iTerm2</span>
+      <span class="req"><span class="req-dot"></span>Python 3.12+</span>
+      <span class="req"><span class="req-dot"></span>Claude Code</span>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <a href="https://github.com/cjthompson/claude-monitor" target="_blank" rel="noopener">claude-monitor</a>
+      <span class="footer-sep">·</span>
+      Built for iTerm2 + macOS
+      <span class="footer-sep">·</span>
+      MIT License
+    </div>
+  </footer>
+
+  <script>
+    function copyInstall(btn) {
+      var text = 'git clone https://github.com/cjthompson/claude-monitor.git\ncd claude-monitor\npython3 install.py';
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
