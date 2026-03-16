@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>claude-monitor — Auto-accept Claude Code permissions</title>
-  <meta name="description" content="A terminal dashboard that monitors and auto-accepts Claude Code permission prompts across iTerm2 panes. Free and open source.">
+  <meta name="description" content="A terminal UI that monitors and auto-accepts Claude Code permission prompts. Works with iTerm2 pane mirroring on macOS or as a simple tabbed TUI on any platform. Free and open source.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -382,7 +382,7 @@
   <!-- HERO -->
   <section class="hero">
     <h1><span class="accent">Auto-accept</span> Claude Code permissions. Monitor everything. One dashboard.</h1>
-    <p class="hero-sub">A terminal UI that mirrors your iTerm2 pane layout, auto-accepts permission prompts, and keeps every Claude Code session running unattended.</p>
+    <p class="hero-sub">A terminal UI that auto-accepts permission prompts and gives you a live dashboard across all sessions. Mirrors your iTerm2 pane layout on macOS, or runs as a simple tabbed TUI on any platform.</p>
     <span class="pill">Free &amp; open source</span>
   </section>
 
@@ -409,23 +409,31 @@
       </div>
       <div class="feature">
         <h3>Per-pane mode control <span class="tag tag-yellow">MANUAL</span></h3>
-        <p>Toggle individual panes between auto and manual mode. Keep risky sessions supervised while letting routine work run unattended.</p>
+        <p>Toggle individual panes between auto and manual mode, or use the global toggle. Click a panel's status bar or press <code>m</code> on a focused panel.</p>
       </div>
       <div class="feature">
         <h3>iTerm2 layout mirroring</h3>
-        <p>Reads your iTerm2 pane tree and renders an exact visual replica with proportional sizing. Vertical and horizontal splits are mirrored precisely.</p>
+        <p>Reads your iTerm2 pane tree and builds a matching TUI layout with proportional sizing. Each iTerm2 pane gets a corresponding panel. Multi-tab layouts supported.</p>
+      </div>
+      <div class="feature">
+        <h3>Simple mode <span class="tag tag-blue">--simple</span></h3>
+        <p>Tabbed TUI that works on any platform without iTerm2. Auto-detects sessions via the event log. Runs automatically outside iTerm2 or on Linux.</p>
       </div>
       <div class="feature">
         <h3>Agent tracking <span class="tag tag-magenta">AGENT+</span></h3>
         <p>Tracks subagent lifecycle per session with active counts, type breakdowns, and completion totals. Know exactly what's running where.</p>
       </div>
       <div class="feature">
-        <h3>API usage bar <span class="tag tag-orange">55%</span></h3>
-        <p>Live Anthropic API quota utilization with 5-hour and 7-day progress bars, color coding, and reset countdowns. Uses your OAuth token from macOS Keychain.</p>
+        <h3>Resizable dashboard</h3>
+        <p>Grow or shrink the dashboard pane with <code>=</code> and <code>-</code>. Minimize to a one-line summary with <code>d</code>. Height persists across restarts.</p>
       </div>
       <div class="feature">
-        <h3>HTTP API <span class="tag tag-blue">:17233</span></h3>
-        <p>Localhost API for external tools. Get screenshots (PNG/SVG), structured JSON state, and health checks. Build Telegram bots or custom dashboards on top.</p>
+        <h3>API usage bar <span class="tag tag-orange">55%</span></h3>
+        <p>Live Anthropic API quota utilization with 5-hour and 7-day progress bars, color coding, and reset countdowns. OAuth token from Keychain or env var.</p>
+      </div>
+      <div class="feature">
+        <h3>Command palette &amp; 20 themes</h3>
+        <p>Quick access to all commands via <code>Ctrl+P</code>. Choose from 20 themes including dracula, catppuccin, nord, gruvbox, tokyo-night, and more.</p>
       </div>
     </div>
   </section>
@@ -486,6 +494,19 @@
           <p>Countdown timer for auto-accepting AskUserQuestion prompts. Configurable per-pane.</p>
         </div>
       </div>
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">Questions Log</div>
+        </div>
+        <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
+        <div class="screenshot-caption">
+          <h4>AskUserQuestion log</h4>
+          <p>Track all AskUserQuestion events across sessions with full question/answer history.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -501,11 +522,12 @@
 <span class="prompt">$ </span><span class="cmd">git clone</span> <span class="str">https://github.com/cjthompson/claude-monitor.git</span>
 <span class="prompt">$ </span><span class="cmd">cd</span> claude-monitor
 <span class="prompt">$ </span><span class="cmd">python3</span> install.py
+<span class="prompt">$ </span><span class="cmd">claude-monitor</span>          <span style="color:var(--text-dim)"># or ./run.sh for auto-restart</span>
       </div>
     </div>
     <div class="requirements">
-      <span class="req"><span class="req-dot"></span>macOS</span>
-      <span class="req"><span class="req-dot"></span>iTerm2</span>
+      <span class="req"><span class="req-dot"></span>macOS or Linux</span>
+      <span class="req"><span class="req-dot"></span>iTerm2 (optional)</span>
       <span class="req"><span class="req-dot"></span>Python 3.12+</span>
       <span class="req"><span class="req-dot"></span>Claude Code</span>
     </div>
@@ -516,7 +538,7 @@
     <div class="footer-inner">
       <a href="https://github.com/cjthompson/claude-monitor" target="_blank" rel="noopener">claude-monitor</a>
       <span class="footer-sep">·</span>
-      Built for iTerm2 + macOS
+      macOS + Linux
       <span class="footer-sep">·</span>
       MIT License
     </div>
@@ -524,7 +546,7 @@
 
   <script>
     function copyInstall(btn) {
-      var text = 'git clone https://github.com/cjthompson/claude-monitor.git\ncd claude-monitor\npython3 install.py';
+      var text = 'git clone https://github.com/cjthompson/claude-monitor.git\ncd claude-monitor\npython3 install.py\nclaude-monitor';
       navigator.clipboard.writeText(text).then(function() {
         btn.textContent = 'Copied!';
         btn.classList.add('copied');
