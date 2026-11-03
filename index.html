@@ -262,6 +262,21 @@
       width: 100%;
       display: block;
     }
+    .screenshot-link {
+      display: block;
+      color: var(--blue);
+      text-decoration: none;
+      cursor: zoom-in;
+    }
+    .screenshot-link:focus-visible { outline-offset: -3px; }
+    .screenshot-link span {
+      display: block;
+      padding: 6px 16px;
+      font-size: 11px;
+      text-align: right;
+      background: var(--bg-overlay);
+    }
+    .screenshot-link:hover span { text-decoration: underline; }
     .screenshot-caption {
       padding: 14px 16px;
       border-top: 1px solid var(--border);
@@ -498,7 +513,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Dashboard</div>
         </div>
-        <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
+        <a class="screenshot-link" href="images/06-dashboard-and-session.png" target="_blank" rel="noopener" aria-label="View full-size dashboard screenshot (opens in a new tab)">
+          <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>Dashboard &amp; session</h3>
           <p>Aggregate stats, activity sparkline, and combined event feed from all sessions.</p>
@@ -511,7 +529,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Settings</div>
         </div>
-        <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
+        <a class="screenshot-link" href="images/02-settings-modal.png" target="_blank" rel="noopener" aria-label="View full-size settings screenshot (opens in a new tab)">
+          <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>Settings</h3>
           <p>Choose mode defaults, iTerm2 scope, timestamps, account usage, and one of 20 themes.</p>
@@ -524,7 +545,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Permissions</div>
         </div>
-        <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
+        <a class="screenshot-link" href="images/04-permissions-log.png" target="_blank" rel="noopener" aria-label="View full-size permission log screenshot (opens in a new tab)">
+          <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>Permission choices log</h3>
           <p>Full history of every permission request with tool details, commands, and descriptions.</p>
@@ -537,7 +561,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">AskUserQuestion</div>
         </div>
-        <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
+        <a class="screenshot-link" href="images/05-askuserquestion-timeout.png" target="_blank" rel="noopener" aria-label="View full-size question timeout screenshot (opens in a new tab)">
+          <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>AskUserQuestion timeout</h3>
           <p>See the active question and the hook's timeout countdown while a session is in manual mode.</p>
@@ -550,7 +577,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Questions Log</div>
         </div>
-        <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
+        <a class="screenshot-link" href="images/03-askuserquestion-log.png" target="_blank" rel="noopener" aria-label="View full-size question log screenshot (opens in a new tab)">
+          <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>AskUserQuestion log</h3>
           <p>Track all AskUserQuestion events across sessions with full question/answer history.</p>
@@ -563,7 +593,10 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Auto &amp; manual</div>
         </div>
-        <img src="images/01-auto-and-manual-modes.png" alt="Claude Monitor with auto and manual approval modes across session panes" loading="lazy">
+        <a class="screenshot-link" href="images/01-auto-and-manual-modes.png" target="_blank" rel="noopener" aria-label="View full-size auto and manual modes screenshot (opens in a new tab)">
+          <img src="images/01-auto-and-manual-modes.png" alt="Claude Monitor with auto and manual approval modes across session panes" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
           <h3>Auto &amp; manual modes</h3>
           <p>Set approval mode per pane and see the combined auto/manual counts in the status bar.</p>
