@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>claude-monitor — Auto-accept Claude Code permissions</title>
-  <meta name="description" content="A terminal UI that monitors and auto-accepts Claude Code permission prompts. Works with iTerm2 pane mirroring on macOS or as a simple tabbed TUI on any platform. Free and open source.">
+  <link rel="icon" href="data:,">
+  <title>claude-monitor — Monitor, manage, and automate Claude Code sessions</title>
+  <meta name="description" content="A terminal dashboard for Claude Code sessions: real-time monitoring, permission controls, subagent tracking, persistent hand-offs, session rotation, git worktree detection, and a local HTTP API. Free and open source for macOS and Linux.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -119,6 +120,24 @@
       padding: 4px 14px;
       border-radius: 999px;
       letter-spacing: 0.5px;
+    }
+    .hero-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      margin-top: 24px;
+      font-size: 13px;
+    }
+    .hero-links a, .install-note a { color: var(--blue); }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 4px;
+    }
+    section[id] { scroll-margin-top: 80px; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
     }
 
     /* ---- HERO SCREENSHOT ---- */
@@ -243,11 +262,52 @@
       width: 100%;
       display: block;
     }
+    .screenshot-link {
+      display: block;
+      color: var(--blue);
+      text-decoration: none;
+      cursor: zoom-in;
+    }
+    .screenshot-link:focus-visible { outline-offset: -3px; }
+    .screenshot-link span {
+      display: block;
+      padding: 6px 16px;
+      font-size: 11px;
+      text-align: right;
+      background: var(--bg-overlay);
+    }
+    .screenshot-link:hover span { text-decoration: underline; }
+    .image-viewer {
+      margin: auto;
+      width: min(1400px, 96vw);
+      max-width: 96vw;
+      max-height: 94vh;
+      padding: 0;
+      color: var(--text);
+      background: var(--bg-raised);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      font-family: var(--font);
+    }
+    .image-viewer::backdrop { background: rgba(0, 0, 0, 0.85); }
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    .viewer-toolbar p { flex: 1; min-width: 120px; }
+    .viewer-stage { overflow: auto; max-height: 75vh; }
+    .viewer-stage img { display: block; max-width: 100%; height: auto; margin: auto; }
+    .viewer-stage.actual-size img { max-width: none; margin: 0; }
+    body:has(.image-viewer[open]) { overflow: hidden; }
     .screenshot-caption {
       padding: 14px 16px;
       border-top: 1px solid var(--border);
     }
-    .screenshot-caption h4 {
+    .screenshot-caption h3 {
       font-size: 13px;
       font-weight: 600;
       color: var(--text-bright);
@@ -309,6 +369,14 @@
       font-size: 13px;
       line-height: 1.8;
       overflow-x: auto;
+      white-space: pre;
+    }
+    .install-note {
+      max-width: 560px;
+      margin: 20px auto 0;
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
     }
     .install-code .prompt { color: var(--green); user-select: none; }
     .install-code .cmd { color: var(--text-bright); }
@@ -381,27 +449,25 @@
 
   <!-- HERO -->
   <section class="hero">
-    <h1><span class="accent">Auto-accept</span> Claude Code permissions. Monitor everything. One dashboard.</h1>
-    <p class="hero-sub">A terminal UI that auto-accepts permission prompts and gives you a live dashboard across all sessions. Mirrors your iTerm2 pane layout on macOS, or runs as a simple tabbed TUI on any platform.</p>
+    <h1>Monitor, manage, and automate your Claude Code sessions.</h1>
+    <p class="hero-sub">Follow live activity, control permission approvals, and track subagents from one terminal dashboard. Save session hand-offs and rotate sessions with context to pick up where you left off. Mirror iTerm2 panes on macOS, or use simple tabbed mode on Linux and other terminals.</p>
     <span class="pill">Free &amp; open source</span>
+    <div class="hero-links">
+      <a href="#install">Install claude-monitor</a>
+      <a href="https://github.com/cjthompson/claude-monitor#session-hand-offs">Read the hand-off guide</a>
+    </div>
   </section>
 
   <!-- HERO SCREENSHOT -->
   <div class="hero-screenshot">
     <div class="screenshot-frame">
-      <div class="screenshot-titlebar">
-        <div class="dot dot-red"></div>
-        <div class="dot dot-yellow"></div>
-        <div class="dot dot-green"></div>
-        <div class="screenshot-title">Claude Monitor (Auto)</div>
-      </div>
       <img src="images/07-multi-pane-layout.png" alt="claude-monitor multi-pane layout showing multiple Claude Code sessions and the aggregate dashboard" loading="eager">
     </div>
   </div>
 
   <!-- FEATURES -->
   <section class="features">
-    <div class="section-label label-green">Features</div>
+    <h2 class="section-label label-green">Features</h2>
     <div class="features-grid">
       <div class="feature">
         <h3>Auto-accept permissions <span class="tag tag-green">ALLOWED</span></h3>
@@ -412,8 +478,24 @@
         <p>Toggle individual panes between auto and manual mode, or use the global toggle. Click a panel's status bar or press <code>m</code> on a focused panel.</p>
       </div>
       <div class="feature">
+        <h3>Persistent session hand-offs</h3>
+        <p>Keep prompts, files touched, git branch state, agent activity, and open questions together. Enable hand-off capture in Settings, then browse the Hand-off tab, CLI, or Markdown digests when you return.</p>
+      </div>
+      <div class="feature">
+        <h3>Session rotation <span class="tag tag-green">OPT-IN</span></h3>
+        <p>Clear or compact an exact iTerm2 session and carry forward a bounded summary. Rotate on demand or after configurable silence; automatic rotation defers pane input during permission requests and questions. Outside iTerm2, capture stays local.</p>
+      </div>
+      <div class="feature">
+        <h3>Session summaries</h3>
+        <p>Open a session's saved summary from its pane title. Captured facts stay local by default. Optional LLM summaries add a goal, stopping point, and next steps; enabling them sends session excerpts to your configured provider.</p>
+      </div>
+      <div class="feature">
+        <h3>Git worktree detection <span class="tag tag-magenta">WT:</span></h3>
+        <p>Recognize sessions running in git worktrees through distinct titles and styling. Keep parallel branches easy to identify alongside your other sessions.</p>
+      </div>
+      <div class="feature">
         <h3>iTerm2 layout mirroring</h3>
-        <p>Reads your iTerm2 pane tree and builds a matching TUI layout with proportional sizing. Each iTerm2 pane gets a corresponding panel. Multi-tab layouts supported.</p>
+        <p>Mirror split panes and multiple tabs with proportional sizing. New and closed panes are detected every three seconds while event history, panel state, active tab, and focus are preserved.</p>
       </div>
       <div class="feature">
         <h3>Simple mode <span class="tag tag-blue">--simple</span></h3>
@@ -435,12 +517,20 @@
         <h3>Command palette &amp; 20 themes</h3>
         <p>Quick access to all commands via <code>Ctrl+P</code>. Choose from 20 themes including dracula, catppuccin, nord, gruvbox, tokyo-night, and more.</p>
       </div>
+      <div class="feature">
+        <h3>Local HTTP API <span class="tag tag-blue">:17233</span></h3>
+        <p>Connect external tools to the localhost API for health checks, structured JSON state, and PNG or SVG screenshots of the dashboard.</p>
+      </div>
+      <div class="feature">
+        <h3>Credential management</h3>
+        <p>Inspect, refresh, and import Claude Code OAuth credentials in the macOS Keychain with a companion CLI. Transfer credentials between machines using an encrypted, authenticated connection and a shared passphrase.</p>
+      </div>
     </div>
   </section>
 
   <!-- SCREENSHOTS -->
   <section class="screenshots">
-    <div class="section-label label-magenta">In Action</div>
+    <h2 class="section-label label-magenta">In action</h2>
     <div class="screenshots-grid">
       <div class="screenshot-card">
         <div class="screenshot-titlebar">
@@ -449,9 +539,12 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Dashboard</div>
         </div>
-        <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
+        <a class="screenshot-link" href="images/06-dashboard-and-session.png" aria-label="View full-size dashboard screenshot" aria-haspopup="dialog">
+          <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
-          <h4>Dashboard &amp; session</h4>
+          <h3>Dashboard &amp; session</h3>
           <p>Aggregate stats, activity sparkline, and combined event feed from all sessions.</p>
         </div>
       </div>
@@ -462,10 +555,13 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Settings</div>
         </div>
-        <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
+        <a class="screenshot-link" href="images/02-settings-modal.png" aria-label="View full-size settings screenshot" aria-haspopup="dialog">
+          <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
-          <h4>Settings</h4>
-          <p>Configure theme, mode defaults, iTerm2 scope, timestamps, and 20 color themes.</p>
+          <h3>Settings</h3>
+          <p>Choose mode defaults, iTerm2 scope, timestamps, account usage, and one of 20 themes.</p>
         </div>
       </div>
       <div class="screenshot-card">
@@ -475,9 +571,12 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Permissions</div>
         </div>
-        <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
+        <a class="screenshot-link" href="images/04-permissions-log.png" aria-label="View full-size permission log screenshot" aria-haspopup="dialog">
+          <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
-          <h4>Permission choices log</h4>
+          <h3>Permission choices log</h3>
           <p>Full history of every permission request with tool details, commands, and descriptions.</p>
         </div>
       </div>
@@ -488,10 +587,13 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">AskUserQuestion</div>
         </div>
-        <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
+        <a class="screenshot-link" href="images/05-askuserquestion-timeout.png" aria-label="View full-size question timeout screenshot" aria-haspopup="dialog">
+          <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
-          <h4>AskUserQuestion timeout</h4>
-          <p>Countdown timer for auto-accepting AskUserQuestion prompts. Configurable per-pane.</p>
+          <h3>AskUserQuestion timeout</h3>
+          <p>See the active question and the hook's timeout countdown while a session is in manual mode.</p>
         </div>
       </div>
       <div class="screenshot-card">
@@ -501,18 +603,37 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Questions Log</div>
         </div>
-        <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
+        <a class="screenshot-link" href="images/03-askuserquestion-log.png" aria-label="View full-size question log screenshot" aria-haspopup="dialog">
+          <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
         <div class="screenshot-caption">
-          <h4>AskUserQuestion log</h4>
+          <h3>AskUserQuestion log</h3>
           <p>Track all AskUserQuestion events across sessions with full question/answer history.</p>
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <div class="screenshot-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="screenshot-title">Auto &amp; manual</div>
+        </div>
+        <a class="screenshot-link" href="images/01-auto-and-manual-modes.png" aria-label="View full-size auto and manual modes screenshot" aria-haspopup="dialog">
+          <img src="images/01-auto-and-manual-modes.png" alt="Claude Monitor with auto and manual approval modes across session panes" loading="lazy">
+          <span aria-hidden="true">View full size</span>
+        </a>
+        <div class="screenshot-caption">
+          <h3>Auto &amp; manual modes</h3>
+          <p>Set approval mode per pane and see the combined auto/manual counts in the status bar.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- INSTALL -->
-  <section class="install">
-    <div class="section-label label-yellow">Install</div>
+  <section class="install" id="install">
+    <h2 class="section-label label-yellow">Install</h2>
     <div class="install-block">
       <div class="install-header">
         <span>Terminal</span>
@@ -531,6 +652,8 @@
       <span class="req"><span class="req-dot"></span>Python 3.12+</span>
       <span class="req"><span class="req-dot"></span>Claude Code</span>
     </div>
+    <p class="install-note">The installer creates a virtual environment, installs companion commands, and asks before configuring Claude Code hooks. Make sure <code>~/.local/bin</code> is on your <code>PATH</code>.</p>
+    <p class="install-note">For pane mirroring and live session rotation, enable iTerm2's Python API on macOS. Other terminals use simple mode automatically, or run <code>claude-monitor --simple</code>. Hand-off capture and automatic rotation are off by default; enable them in Settings. See the <a href="https://github.com/cjthompson/claude-monitor#installation">installation guide</a> for details.</p>
   </section>
 
   <!-- FOOTER -->
@@ -544,7 +667,48 @@
     </div>
   </footer>
 
+  <dialog class="image-viewer" aria-labelledby="viewer-title">
+    <div class="viewer-toolbar">
+      <p id="viewer-title">Screenshot</p>
+      <button class="copy-btn" id="viewer-size" type="button" aria-pressed="false">Actual size</button>
+      <button class="copy-btn" id="viewer-close" type="button" autofocus>Close</button>
+    </div>
+    <div class="viewer-stage"><img id="viewer-image" alt=""></div>
+  </dialog>
+
   <script>
+    var viewer = document.querySelector('.image-viewer');
+    var viewerImage = document.getElementById('viewer-image');
+    var viewerStage = document.querySelector('.viewer-stage');
+    var sizeButton = document.getElementById('viewer-size');
+    document.querySelectorAll('.screenshot-link').forEach(function(link) {
+      link.addEventListener('click', function(event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        var thumbnail = link.querySelector('img');
+        viewerImage.src = link.getAttribute('href');
+        viewerImage.alt = thumbnail.alt;
+        document.getElementById('viewer-title').textContent = link.closest('.screenshot-card').querySelector('h3').textContent;
+        viewerStage.classList.remove('actual-size');
+        sizeButton.textContent = 'Actual size';
+        sizeButton.setAttribute('aria-pressed', 'false');
+        viewer.showModal();
+        viewerStage.scrollTo(0, 0);
+      });
+    });
+    sizeButton.addEventListener('click', function() {
+      var actualSize = viewerStage.classList.toggle('actual-size');
+      sizeButton.textContent = actualSize ? 'Fit image' : 'Actual size';
+      sizeButton.setAttribute('aria-pressed', String(actualSize));
+    });
+    document.getElementById('viewer-close').addEventListener('click', function() { viewer.close(); });
+    viewer.addEventListener('click', function(event) {
+      if (event.target === viewer) {
+        var bounds = viewer.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) viewer.close();
+      }
+    });
+
     function copyInstall(btn) {
       var text = 'git clone https://github.com/cjthompson/claude-monitor.git\ncd claude-monitor\npython3 install.py\nclaude-monitor';
       navigator.clipboard.writeText(text).then(function() {
