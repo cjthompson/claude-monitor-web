@@ -277,6 +277,32 @@
       background: var(--bg-overlay);
     }
     .screenshot-link:hover span { text-decoration: underline; }
+    .image-viewer {
+      margin: auto;
+      width: min(1400px, 96vw);
+      max-width: 96vw;
+      max-height: 94vh;
+      padding: 0;
+      color: var(--text);
+      background: var(--bg-raised);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      font-family: var(--font);
+    }
+    .image-viewer::backdrop { background: rgba(0, 0, 0, 0.85); }
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    .viewer-toolbar p { flex: 1; min-width: 120px; }
+    .viewer-stage { overflow: auto; max-height: 75vh; }
+    .viewer-stage img { display: block; max-width: 100%; height: auto; margin: auto; }
+    .viewer-stage.actual-size img { max-width: none; margin: 0; }
+    body:has(.image-viewer[open]) { overflow: hidden; }
     .screenshot-caption {
       padding: 14px 16px;
       border-top: 1px solid var(--border);
@@ -513,7 +539,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Dashboard</div>
         </div>
-        <a class="screenshot-link" href="images/06-dashboard-and-session.png" target="_blank" rel="noopener" aria-label="View full-size dashboard screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/06-dashboard-and-session.png" aria-label="View full-size dashboard screenshot" aria-haspopup="dialog">
           <img src="images/06-dashboard-and-session.png" alt="Dashboard showing session stats and event feed" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -529,7 +555,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Settings</div>
         </div>
-        <a class="screenshot-link" href="images/02-settings-modal.png" target="_blank" rel="noopener" aria-label="View full-size settings screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/02-settings-modal.png" aria-label="View full-size settings screenshot" aria-haspopup="dialog">
           <img src="images/02-settings-modal.png" alt="Settings modal with theme, mode, and scope options" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -545,7 +571,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Permissions</div>
         </div>
-        <a class="screenshot-link" href="images/04-permissions-log.png" target="_blank" rel="noopener" aria-label="View full-size permission log screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/04-permissions-log.png" aria-label="View full-size permission log screenshot" aria-haspopup="dialog">
           <img src="images/04-permissions-log.png" alt="Permission choices log showing tool calls and decisions" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -561,7 +587,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">AskUserQuestion</div>
         </div>
-        <a class="screenshot-link" href="images/05-askuserquestion-timeout.png" target="_blank" rel="noopener" aria-label="View full-size question timeout screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/05-askuserquestion-timeout.png" aria-label="View full-size question timeout screenshot" aria-haspopup="dialog">
           <img src="images/05-askuserquestion-timeout.png" alt="AskUserQuestion timeout countdown timer" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -577,7 +603,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Questions Log</div>
         </div>
-        <a class="screenshot-link" href="images/03-askuserquestion-log.png" target="_blank" rel="noopener" aria-label="View full-size question log screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/03-askuserquestion-log.png" aria-label="View full-size question log screenshot" aria-haspopup="dialog">
           <img src="images/03-askuserquestion-log.png" alt="AskUserQuestion log with full question and answer history" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -593,7 +619,7 @@
           <div class="dot dot-green"></div>
           <div class="screenshot-title">Auto &amp; manual</div>
         </div>
-        <a class="screenshot-link" href="images/01-auto-and-manual-modes.png" target="_blank" rel="noopener" aria-label="View full-size auto and manual modes screenshot (opens in a new tab)">
+        <a class="screenshot-link" href="images/01-auto-and-manual-modes.png" aria-label="View full-size auto and manual modes screenshot" aria-haspopup="dialog">
           <img src="images/01-auto-and-manual-modes.png" alt="Claude Monitor with auto and manual approval modes across session panes" loading="lazy">
           <span aria-hidden="true">View full size</span>
         </a>
@@ -641,7 +667,48 @@
     </div>
   </footer>
 
+  <dialog class="image-viewer" aria-labelledby="viewer-title">
+    <div class="viewer-toolbar">
+      <p id="viewer-title">Screenshot</p>
+      <button class="copy-btn" id="viewer-size" type="button" aria-pressed="false">Actual size</button>
+      <button class="copy-btn" id="viewer-close" type="button" autofocus>Close</button>
+    </div>
+    <div class="viewer-stage"><img id="viewer-image" alt=""></div>
+  </dialog>
+
   <script>
+    var viewer = document.querySelector('.image-viewer');
+    var viewerImage = document.getElementById('viewer-image');
+    var viewerStage = document.querySelector('.viewer-stage');
+    var sizeButton = document.getElementById('viewer-size');
+    document.querySelectorAll('.screenshot-link').forEach(function(link) {
+      link.addEventListener('click', function(event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        var thumbnail = link.querySelector('img');
+        viewerImage.src = link.getAttribute('href');
+        viewerImage.alt = thumbnail.alt;
+        document.getElementById('viewer-title').textContent = link.closest('.screenshot-card').querySelector('h3').textContent;
+        viewerStage.classList.remove('actual-size');
+        sizeButton.textContent = 'Actual size';
+        sizeButton.setAttribute('aria-pressed', 'false');
+        viewer.showModal();
+        viewerStage.scrollTo(0, 0);
+      });
+    });
+    sizeButton.addEventListener('click', function() {
+      var actualSize = viewerStage.classList.toggle('actual-size');
+      sizeButton.textContent = actualSize ? 'Fit image' : 'Actual size';
+      sizeButton.setAttribute('aria-pressed', String(actualSize));
+    });
+    document.getElementById('viewer-close').addEventListener('click', function() { viewer.close(); });
+    viewer.addEventListener('click', function(event) {
+      if (event.target === viewer) {
+        var bounds = viewer.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) viewer.close();
+      }
+    });
+
     function copyInstall(btn) {
       var text = 'git clone https://github.com/cjthompson/claude-monitor.git\ncd claude-monitor\npython3 install.py\nclaude-monitor';
       navigator.clipboard.writeText(text).then(function() {
